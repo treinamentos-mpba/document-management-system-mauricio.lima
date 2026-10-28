@@ -24,6 +24,7 @@ export default function App() {
   const [userIdInput, setUserIdInput] = useState(userId);
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [downloadingId, setDownloadingId] = useState(null);
   const [feedback, setFeedback] = useState(null);
@@ -76,6 +77,19 @@ export default function App() {
       return false;
     } finally {
       setIsUploading(false);
+    }
+  }
+
+  async function handleRefresh() {
+    setIsRefreshing(true);
+    setFeedback(null);
+
+    try {
+      setDocuments(await listDocuments(userId));
+    } catch (error) {
+      setFeedback({ type: 'error', text: error.message });
+    } finally {
+      setIsRefreshing(false);
     }
   }
 
@@ -152,7 +166,17 @@ export default function App() {
               <p className="eyebrow">ARQUIVOS DO USUÁRIO</p>
               <h2 id="documents-title">Documentos</h2>
             </div>
-            {!isLoading && <span className="document-count">{documents.length}</span>}
+            <div className="list-actions">
+              {!isLoading && <span className="document-count">{documents.length}</span>}
+              <button
+                className="refresh-button"
+                disabled={isLoading || isRefreshing}
+                onClick={handleRefresh}
+                type="button"
+              >
+                {isRefreshing ? 'Atualizando...' : 'Atualizar lista'}
+              </button>
+            </div>
           </div>
           <DocumentList
             documents={documents}
