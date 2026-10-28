@@ -96,3 +96,70 @@ test('rejeita arquivos acima do limite configurado', async () => {
   assert.equal(response.status, 413);
   assert.equal((await response.json()).error.code, 'FILE_TOO_LARGE');
 });
+
+test('lista apenas documentos do usuário informado', async () => {
+  const firstUser = randomUUID();
+  const secondUser = randomUUID();
+  const form = new FormData();
+  form.append('file', new Blob(['documento privado']), 'privado.txt');
+
+  const uploadResponse = await fetch(`${baseUrl}/upload`, {
+    method: 'POST',
+    headers: { 'X-User-Id': firstUser },
+    body: form,
+  });
+  assert.equal(uploadResponse.status, 201);
+  const document = await uploadResponse.json();
+
+  const firstList = await fetch(`${baseUrl}/documents`, {
+    headers: { 'X-User-Id': firstUser },
+  });
+  assert.equal(firstList.status, 200);
+  assert.deepEqual(await firstList.json(), [document]);
+
+  const secondList = await fetch(`${baseUrl}/documents`, {
+    headers: { 'X-User-Id': secondUser },
+  });
+  assert.equal(secondList.status, 200);
+  assert.deepEqual(await secondList.json(), []);
+
+  const secondDownload = await fetch(`${baseUrl}/documents/${document.id}/download`, {
+    headers: { 'X-User-Id': secondUser },
+  });
+  assert.equal(secondDownload.status, 404);
+  assert.equal((await secondDownload.json()).error.code, 'DOCUMENT_NOT_FOUND');
+});
+
+test('valida o identificador do documento e trata documentos inexistentes', async () => {
+  const invalidResponse = await fetch(`${baseUrl}/documents/id-invalido/download`, {
+    headers: { 'X-User-Id': userId },
+  });
+  assert.equal(invalidResponse.status, 400);
+  assert.equal((await invalidResponse.json()).error.code, 'INVALID_DOCUMENT_ID');
+
+  const missingResponse = await fetch(`${baseUrl}/documents/${randomUUID()}/download`, {
+    headers: { 'X-User-Id': userId },
+  });
+  assert.equal(missingResponse.status, 404);
+  assert.equal((await missingResponse.json()).error.code, 'DOCUMENT_NOT_FOUND');
+});
+
+test('rejeita upload em campo incorreto e não registra documento', async () => {
+  const uploadUser = randomUUID();
+  const form = new FormData();
+  form.append('outro', new Blob(['documento']), 'arquivo.txt');
+
+  const response = await fetch(`${baseUrl}/upload`, {
+    method: 'POST',
+    headers: { 'X-User-Id': uploadUser },
+    body: form,
+  });
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).error.code, 'INVALID_UPLOAD');
+
+  const listResponse = await fetch(`${baseUrl}/documents`, {
+    headers: { 'X-User-Id': uploadUser },
+  });
+  assert.equal(listResponse.status, 200);
+  assert.deepEqual(await listResponse.json(), []);
+});
