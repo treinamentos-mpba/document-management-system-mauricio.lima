@@ -12,10 +12,10 @@
 
 const path = require('node:path');
 const express = require('express');
-const createDocumentsRepository = require('./repositories/documentsRepository');
-const createDocumentsService = require('./services/documentsService');
-const createDocumentsController = require('./controllers/documentsController');
-const createDocumentsRouter = require('./routes/documentsRoutes');
+const createDocumentsRepository = require('./repositories/documents.repository');
+const createDocumentsService = require('./services/documents.service');
+const createDocumentsController = require('./controllers/documents.controller');
+const createDocumentsRouter = require('./routes/documents.routes');
 
 const DEFAULT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
