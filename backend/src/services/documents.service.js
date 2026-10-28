@@ -1,21 +1,9 @@
-const { randomUUID } = require('node:crypto');
-
-function toPublicDocument(document) {
-  const { storageName, ...publicDocument } = document;
-  return publicDocument;
-}
+const { fromUploadedFile, toPublicDocument } = require('./documents.mapper');
 
 function createDocumentsService(documentsRepository) {
   return {
     createDocument(file, owner) {
-      const document = documentsRepository.save({
-        id: randomUUID(),
-        originalName: file.originalname,
-        size: file.size,
-        uploadedAt: new Date().toISOString(),
-        owner,
-        storageName: file.filename,
-      });
+      const document = documentsRepository.save(fromUploadedFile(file, owner));
 
       return toPublicDocument(document);
     },

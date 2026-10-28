@@ -85,6 +85,7 @@ Formato padrão de erro:
 
 - `routes/` registra endpoints; `controllers/` valida a entrada HTTP e monta as respostas.
 - `services/` aplica as regras de negócio.
+- O serviço de documentos coordena os casos de uso usando o repositório injetado; `documents.mapper.js` centraliza a construção dos metadados e sua projeção pública, sem expor `storageName`.
 - `repositories/` encapsula o acesso aos arquivos locais e aos metadados em memória.
 - `multer` com `diskStorage` é o único mecanismo de armazenamento de arquivos.
 - O frontend usa componentes React e `fetch` por meio do serviço da aplicação.
